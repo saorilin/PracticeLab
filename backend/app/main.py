@@ -21,10 +21,10 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 settings = get_settings()
 app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
 app.add_middleware(
-    CORSMiddleware,
+                      CORSMiddleware,
     allow_origins=settings.allowed_origins,
-    allow_credentials=False,
+                allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type"],
+                  allow_headers=["Content-Type"],
 )
 app.include_router(router, prefix=settings.api_prefix)
