@@ -11,6 +11,7 @@ from app.seed import seed_database
 
 from fastapi import FastAPI
 
+
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     Base.metadata.create_all(bind=engine)
