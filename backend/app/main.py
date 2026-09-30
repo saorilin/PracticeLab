@@ -1,15 +1,13 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import router
 from app.config import get_settings
 from app.database import Base, SessionLocal, engine
 from app.seed import seed_database
-
-from fastapi import FastAPI
 
 
 @asynccontextmanager

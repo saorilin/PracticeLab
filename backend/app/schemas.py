@@ -15,7 +15,7 @@ class ExerciseBase(BaseModel):
     steps: list[str] = Field(min_length=1, max_length=20)
     technique_notes: list[str] = Field(default_factory=list, max_length=20)
     common_mistakes: list[str] = Field(default_factory=list, max_length=20)
-    min_bpm: int | None = Field(default=None, ge=20, le=400)
+    min_bpm: str | None = Field(default=None, ge=20, le=400)
     max_bpm: int | None = Field(default=None, ge=20, le=400)
     target_duration_seconds: int | None = Field(default=None, ge=10, le=7200)
     target_repetitions: int | None = Field(default=None, ge=1, le=1000)
