@@ -23,6 +23,18 @@
   box-sizing: border-box;
 }
 
+.visually-hidden {
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -665,6 +677,155 @@ h2 {
   background: var(--ink);
 }
 
+.checkbox-field {
+  margin-top: 24px;
+  padding: 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.checkbox-field input {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  accent-color: var(--wine);
+}
+
+.checkbox-field span,
+.checkbox-field strong,
+.checkbox-field small {
+  display: block;
+}
+
+.checkbox-field small {
+  margin-top: 3px;
+  color: #747b78;
+  font-weight: 400;
+}
+
+.beat-pattern-editor {
+  grid-column: 1 / -1;
+  padding: 32px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.pattern-editor-heading {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  align-items: end;
+}
+
+.pattern-editor-heading h2 {
+  margin-bottom: 0;
+  font-size: 2.35rem;
+}
+
+.pattern-editor-heading > p {
+  max-width: 520px;
+  margin-bottom: 2px;
+  color: #616a68;
+  line-height: 1.6;
+}
+
+.beat-pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+  gap: 12px;
+}
+
+.beat-pattern-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #c9c1b4;
+  background: #fffdf8;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.beat-pattern-card.current {
+  border-color: var(--brass-deep);
+  box-shadow: inset 0 3px 0 var(--brass);
+}
+
+.beat-pattern-header {
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.beat-pattern-header strong {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 400;
+}
+
+.beat-pattern-header select {
+  max-width: 128px;
+  padding: 7px 8px;
+  border: 1px solid #bdb5a8;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.pulse-grid {
+  display: grid;
+  gap: 7px;
+}
+
+.pulse-grid button {
+  width: 100%;
+  max-width: 44px;
+  min-width: 0;
+  aspect-ratio: 1;
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  border: 1px solid #aca497;
+  border-radius: 50%;
+  color: #7b817d;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    transform 90ms ease,
+    box-shadow 90ms ease,
+    background 90ms ease;
+}
+
+.pulse-grid button:first-child {
+  border-color: var(--wine);
+}
+
+.pulse-grid button.enabled {
+  border-color: var(--ink);
+  color: var(--paper);
+  background: var(--ink);
+}
+
+.pulse-grid button.enabled:first-child {
+  border-color: var(--wine);
+  background: var(--wine);
+}
+
+.pulse-grid button.current {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 4px rgb(183 139 71 / 28%);
+}
+
+.pulse-grid span {
+  font-size: 0.77rem;
+  font-weight: 700;
+}
+
 .score-strip {
   width: 100%;
   padding: 18px 0;
@@ -1166,6 +1327,22 @@ h2 {
   .trainer-stage,
   .detail-main {
     padding: 28px 20px;
+  }
+
+  .beat-pattern-editor {
+    padding: 24px 18px;
+  }
+
+  .pattern-editor-heading {
+    display: block;
+  }
+
+  .pattern-editor-heading > p {
+    margin-top: 14px;
+  }
+
+  .beat-pattern-grid {
+    grid-template-columns: 1fr;
   }
 
   .tempo-orb strong {
