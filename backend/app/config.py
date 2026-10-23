@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    # Default config settings for the application 
+    # Default config settings for the application
     app_name: str = "PracticeLab API"
     api_prefix: str = "/api/v1"
     database_url: str = "sqlite:///./data/practicelab.db"
