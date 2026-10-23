@@ -1,0 +1,41 @@
+name: Docker CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docker-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Build and start containers
+        run: docker compose up --build -d --wait --wait-timeout 120
+
+      - name: Check frontend
+        run: curl --fail --show-error --silent http://localhost:8080/
+
+      - name: Check backend through Nginx
+        run: curl --fail --show-error --silent http://localhost:8080/api/v1/health
+
+      - name: Show Compose status
+        if: always()
+        run: docker compose ps
+
+      - name: Show Compose logs
+        if: always()
+        run: docker compose logs
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down -v --remove-orphans
