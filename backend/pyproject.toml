@@ -30,17 +30,6 @@ packages = ["app"]
 target-version = "py311"
 line-length = 100
 
-[tool.ruff.lint]
-select = [
-  "E",
-  "F",
-  "I",
-  "B",
-  "UP",
-  "SIM",
-  "RUF"
-]
-
 [tool.pytest.ini_options]
 addopts = """
 -q
