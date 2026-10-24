@@ -45,7 +45,17 @@ jobs:
               run: python -m mypy app
 
             - name: Run tests with coverage
-              run: python -m pytest --cov-report=term-missing --cov-report=html:htmlcov
+              id: tests
+              run: python -m pytest --junitxml=pytest-report.xml --cov-report=html:htmlcov
+
+            - name: Upload test results
+              if: ${{ !cancelled() && steps.tests.outcome != 'skipped' }}
+              uses: actions/upload-artifact@v7
+              with:
+                name: backend-test-results
+                path: ./backend/pytest-report.xml
+                if-no-files-found: ignore
+                retention-days: 14
 
             - name: Upload coverage report
               uses: actions/upload-artifact@v7
