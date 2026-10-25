@@ -34,8 +34,6 @@ line-length = 100
 addopts = """
 -q
 --strict-config
---strict-markers
---basetemp=.pytest-tmp
 --cov=app
 --cov-report=term-missing
 --cov-fail-under=80
