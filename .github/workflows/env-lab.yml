@@ -52,6 +52,8 @@ jobs:
                 echo "shell      \$COLOR      = $COLOR"
                 echo "expression env.COLOR = ${{ env.COLOR }}"
 
+# 在 step 之间传值（export 和 $GITHUB_ENV）
+
     lesson-04:
         runs-on: ubuntu-latest
         steps:
@@ -75,6 +77,8 @@ jobs:
                 echo "NOTES:"; echo "$NOTES"
                 echo "as expression: ${{ env.VIA_GITHUB_ENV }}"
 
+# step outputs（$GITHUB_OUTPUT）
+
     lesson-05:
         runs-on: ubuntu-latest
         steps:
@@ -85,3 +89,21 @@ jobs:
               env:
                 TAG: ${{ steps.meta.outputs.tag }}
               run: echo "TAG=$TAG"
+
+# 在 job 之间传值（job outputs 和 needs）
+              
+    lesson-06-produce:
+        runs-on: ubuntu-latest
+        outputs:
+            tag: ${{ steps.meta.outputs.tag }}
+        steps:
+            - id: meta
+              run: echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+    lesson-06-consume:
+        runs-on: ubuntu-latest
+        needs: lesson-06-produce
+        steps:
+            - env:
+                TAG: ${{ needs.lesson-06-produce.outputs.tag }}
+              run: echo "got TAG=$TAG from another job"
