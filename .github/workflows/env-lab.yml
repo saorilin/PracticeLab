@@ -8,6 +8,10 @@ on:
 permissions:
     contents: read
 
+env:
+    SCOPE: workflow
+    ONLY_WORKFLOW: from-top
+
 jobs:
     lesson-01:
         runs-on: ubuntu-latest
@@ -23,3 +27,16 @@ jobs:
             - name: List all GITHUB_ variables
               run: env | grep '^GITHUB_' | sort
                 
+    lesson-02:
+        runs-on: ubuntu-latest
+        env:
+            SCOPE: job
+        steps:
+            - name: Job overrides workflow
+              run: echo "SCOPE=$SCOPE  ONLY_WORKFLOW=$ONLY_WORKFLOW"
+            - name: Step overrides job
+              env:
+                SCOPE: step
+              run: echo "SCOPE=$SCOPE"
+            - name: Back to job level
+              run: echo "SCOPE=$SCOPE"
