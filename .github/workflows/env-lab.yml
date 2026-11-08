@@ -51,6 +51,7 @@ jobs:
                 COLOR=red
                 echo "shell      \$COLOR      = $COLOR"
                 echo "expression env.COLOR = ${{ env.COLOR }}"
+
     lesson-04:
         runs-on: ubuntu-latest
         steps:
@@ -73,3 +74,14 @@ jobs:
                 echo "VIA_GITHUB_ENV='$VIA_GITHUB_ENV'"
                 echo "NOTES:"; echo "$NOTES"
                 echo "as expression: ${{ env.VIA_GITHUB_ENV }}"
+
+    lesson-05:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Compute image tag
+              id: meta
+              run: echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+            - name: Use it
+              env:
+                TAG: ${{ steps.meta.outputs.tag }}
+              run: echo "TAG=$TAG"
