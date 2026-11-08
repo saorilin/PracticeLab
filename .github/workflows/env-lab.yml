@@ -1,0 +1,25 @@
+name: Env lab
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - "lab/**"
+
+permissions:
+    contents: read
+
+jobs:
+    lesson-01:
+        runs-on: ubuntu-latest
+        env:
+            MY_VAR: hello
+        steps:
+            - name: Default variables live on the runner
+              run: |
+                echo "shell   \$GITHUB_SHA    = $GITHUB_SHA"
+                echo "context github.sha     = ${{ github.sha }}"
+                echo "env ctx env.GITHUB_SHA = '${{ env.GITHUB_SHA }}'"
+                echo "env ctx env.MY_VAR     = '${{ env.MY_VAR }}'"
+            - name: List all GITHUB_ variables
+              run: env | grep '^GITHUB_' | sort
+                
