@@ -40,3 +40,14 @@ jobs:
               run: echo "SCOPE=$SCOPE"
             - name: Back to job level
               run: echo "SCOPE=$SCOPE"
+
+    lesson-03:
+        runs-on: ubuntu-latest
+        env:
+            COLOR: blue
+        steps:
+            - name: Expression vs shell
+              run: |
+                COLOR=red
+                echo "shell      \$COLOR      = $COLOR"
+                echo "expression env.COLOR = ${{ env.COLOR }}"
