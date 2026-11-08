@@ -51,3 +51,25 @@ jobs:
                 COLOR=red
                 echo "shell      \$COLOR      = $COLOR"
                 echo "expression env.COLOR = ${{ env.COLOR }}"
+    lesson-04:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Try to pass values
+              run: |
+                export VIA_EXPORT=lost
+                echo "VIA_GITHUB_ENV=kept" >> "$GITHUB_ENV"
+                echo "same step: VIA_GITHUB_ENV='${VIA_GITHUB_ENV:-<not yet>}'"
+            - name: Multi-line value
+              run: |
+                {
+                    echo "NOTES<<EOF"
+                    echo "line one"
+                    echo "line two"
+                    echo "EOF"
+                } >> "$GITHUB_ENV"
+            - name: Read in the next step
+              run: |
+                echo "VIA_EXPORT='${VIA_EXPORT:-<unset>}'"
+                echo "VIA_GITHUB_ENV='$VIA_GITHUB_ENV'"
+                echo "NOTES:"; echo "$NOTES"
+                echo "as expression: ${{ env.VIA_GITHUB_ENV }}"
