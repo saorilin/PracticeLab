@@ -1,4 +1,4 @@
-name: Docker CI
+name: Docker Integration Checks
 
 on:
   workflow_call:
