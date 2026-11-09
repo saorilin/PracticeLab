@@ -1,0 +1,27 @@
+name: Main CI and Publish
+
+on:
+    push:
+        branches: [main]
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+  backend:
+    uses: ./.github/workflows/backend-checks.yml
+
+  frontend:
+    uses: ./.github/workflows/frontend-checks.yml
+
+  docker:
+    uses: ./.github/workflows/docker-integration-checks.yml
+
+  publish:
+    needs: [backend, frontend, docker]
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/publish-images.yml
