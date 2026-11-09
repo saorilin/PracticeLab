@@ -172,3 +172,16 @@ jobs:
                 echo "IS_MAIN=$IS_MAIN"
                 echo "upper owner: ${{ github.repository_owner }}"
                 echo "lower owner: ${GITHUB_REPOSITORY_OWNER,,}"
+
+# 脚本注入（为什么要用 env:，不要把 ${{ }} 直接写进 run:）
+
+    lesson-11:
+        runs-on: ubuntu-latest
+        env:
+            UNTRUSTED: 'hello $(echo INJECTED-COMMAND-RAN)'
+        steps:
+            - name: Unsafe - expression inlined into the script
+              run: echo "${{ env.UNTRUSTED }}"
+            - name: Safe - read from environment
+              run: echo "$UNTRUSTED"
+
