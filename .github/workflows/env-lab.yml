@@ -185,3 +185,16 @@ jobs:
             - name: Safe - read from environment
               run: echo "$UNTRUSTED"
 
+# environment: 和环境层的 vars
+
+    lesson-12-no-env:
+        runs-on: ubuntu-latest
+        steps:
+            - run: echo "without environment = ${{ vars.LAB_GREETING }}"
+
+    lesson-12-with-env:
+        runs-on: ubuntu-latest
+        environment: lab
+        steps:
+            - run: echo "with environment    = ${{ vars.LAB_GREETING }}"
+           
