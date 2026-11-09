@@ -198,3 +198,24 @@ jobs:
         steps:
             - run: echo "with environment    = ${{ vars.LAB_GREETING }}"
            
+# 从 Actions 传到 Docker Compose
+
+    lesson-13:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - name: Missing IMAGE_TAG
+              run: docker compose -f compose.deploy.yml config 2>&1 | grep -E 'image:|IMAGE_TAG' || true
+            - name: IMAGE_TAG from runner env
+              env:
+                  IMAGE_TAG: ${{ github.sha }}
+              run: docker compose -f compose.deploy.yml config | grep 'image:'
+            - name: Precedence - shell beats --env-file
+              run: |
+                  echo "IMAGE_TAG=from-env-file" > lab.env
+                  docker compose -f compose.deploy.yml --env-file lab.env config | grep 'image:'
+                  IMAGE_TAG=from-shell docker compose -f compose.deploy.yml --env-file lab.env config | grep 'image:'
+            - name: What the container would receive
+              run: docker compose -f compose.deploy.yml --env-file lab.env config --format json | jq '.services.backend.environment'
+
+              
