@@ -156,3 +156,19 @@ jobs:
               env:
                 IMAGE_TAG: sha-${{ github.sha }}
               run: 'echo "would run: docker pull ghcr.io/owner/app:$IMAGE_TAG"'
+
+# 表达式函数和拼接
+
+    lesson-10:
+        runs-on: ubuntu-latest
+        env:
+            IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/practicelab
+            SHORT_REF: ${{ github.ref_name }}
+            IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
+        steps:
+            - run: |
+                echo "IMAGE_PREFIX=$IMAGE_PREFIX"
+                echo "SHORT_REF=$SHORT_REF"
+                echo "IS_MAIN=$IS_MAIN"
+                echo "upper owner: ${{ github.repository_owner }}"
+                echo "lower owner: ${GITHUB_REPOSITORY_OWNER,,}"
