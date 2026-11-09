@@ -142,3 +142,17 @@ jobs:
             - name: Conditional on a secret (via env)
               if: env.LAB_SECRET != ''
               run: echo "secret is configured"
+
+# 把值传给 action（with:）和传给命令（env:）
+
+    lesson-09:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Value as an action input
+              uses: actions/github-script@v8
+              with:
+                script: 'core.info(`sha from input: ${{ github.sha }}`)'
+            - name: Value as an env var for a command
+              env:
+                IMAGE_TAG: sha-${{ github.sha }}
+              run: 'echo "would run: docker pull ghcr.io/owner/app:$IMAGE_TAG"'
