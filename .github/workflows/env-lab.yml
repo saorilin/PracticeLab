@@ -107,3 +107,17 @@ jobs:
             - env:
                 TAG: ${{ needs.lesson-06-produce.outputs.tag }}
               run: echo "got TAG=$TAG from another job"
+
+# vars（非敏感配置）
+
+    lesson-07:
+        runs-on: ubuntu-latest
+        steps:
+            - env:
+                GREETING: ${{ vars.LAB_GREETING  }}
+                MISSING: ${{ vars.DOES_NOT_EXIST }}
+                WITH_DEFAULT: ${{ vars.DOES_NOT_EXIST || 'fallback' }}
+              run: |
+                echo "GREETING=$GREETING"
+                echo "MISSING=$MISSING"
+                echo "WITH_DEFAULT=$WITH_DEFAULT"
