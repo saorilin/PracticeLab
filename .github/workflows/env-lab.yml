@@ -121,3 +121,24 @@ jobs:
                 echo "GREETING=$GREETING"
                 echo "MISSING=$MISSING"
                 echo "WITH_DEFAULT=$WITH_DEFAULT"
+
+# secrets 和打码
+
+    lesson-08:
+        runs-on: ubuntu-latest
+        env:
+            LAB_SECRET: ${{ secrets.LAB_SECRET }}
+        steps:
+            - name: Masking
+              run: |
+                echo "direct:   $LAB_SECRET"
+                echo "length:   ${#LAB_SECRET}"
+                echo "reversed: $(echo "$LAB_SECRET" | rev)"
+            - name: Mask a derived value yourself
+              run: |
+                DERIVED=$(echo "$LAB_SECRET" | rev)
+                echo "::add-mask::$DERIVED"
+                echo "derived now: $DERIVED"
+            - name: Conditional on a secret (via env)
+              if: env.LAB_SECRET != ''
+              run: echo "secret is configured"
