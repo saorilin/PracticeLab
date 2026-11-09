@@ -8,11 +8,11 @@ permissions:
     contents: read
 
 jobs:
-    backend-checks:
+    backend:
         uses: ./.github/workflows/backend-checks.yml
     
-    frontend-checks:
+    frontend:
         uses: ./.github/workflows/frontend-checks.yml
 
-    docker-integration-checks:
+    docker:
         uses: ./.github/workflows/docker-integration-checks.yml
