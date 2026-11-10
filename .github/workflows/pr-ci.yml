@@ -1,0 +1,18 @@
+name: PR CI
+
+on:
+    pull_request:
+        branches: [main]    # Pull request to the main branch
+
+permissions:
+    contents: read
+
+jobs:
+    backend:
+        uses: ./.github/workflows/backend-checks.yml
+    
+    frontend:
+        uses: ./.github/workflows/frontend-checks.yml
+
+    docker:
+        uses: ./.github/workflows/docker-integration-checks.yml
