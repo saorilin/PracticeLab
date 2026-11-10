@@ -13,9 +13,7 @@ RUN python -m pip install --no-cache-dir --require-hashes -r requirements.lock
 
 COPY pyproject.toml ./
 COPY app ./app
-RUN python -m pip install --no-cache-dir --no-deps 
-
-RUN python -m pip install --no-cache-dir .
+RUN python -m pip install --no-cache-dir --no-deps .
 
 RUN mkdir -p /app/data \
     && chown app:app /app/data
