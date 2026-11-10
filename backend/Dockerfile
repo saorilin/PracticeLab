@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -8,8 +8,12 @@ WORKDIR /app
 RUN addgroup --system app \
     && adduser --system --ingroup app app
 
+COPY requirements.lock ./
+RUN python -m pip install --no-cache-dir --require-hashes -r requirements.lock
+
 COPY pyproject.toml ./
 COPY app ./app
+RUN python -m pip install --no-cache-dir --no-deps 
 
 RUN python -m pip install --no-cache-dir .
 

@@ -1,4 +1,4 @@
-FROM node:24-slim AS build
+FROM node:24-slim@sha256:01d566e8d94d8c619591d78652babfccd3c6992a3dffa9ed5ab39e11cf6c70e9 AS build
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ COPY . .
 RUN npm run build
 
 
-FROM nginx:1.30.6-alpine-slim
+FROM nginx:1.30.6-alpine-slim@sha256:e2355aa95529a7999dad94ddcb45a8768abf6fb0b204c93b1a3ffce477d7b893
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
