@@ -8,7 +8,6 @@ on:
 permissions:
     contents: read
 
-    
 concurrency:    # ensure the publish job is not running concurrently 
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: false
