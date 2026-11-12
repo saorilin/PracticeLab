@@ -1,0 +1,66 @@
+name: Build Images
+
+on:
+    workflow_call:
+        outputs:
+            backend-image:
+                description: 'The built backend image name'
+                value: ${{ jobs.build-images.outputs.backend-image }}
+            frontend-image:
+                description: 'The built frontend image name'
+                value: ${{ jobs.build-images.outputs.frontend-image }}
+
+permissions:
+    contents: read
+
+defaults:
+    run:
+        shell: bash # bash --noprofile --norc -eo pipefail
+    
+jobs:
+    build-images:
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+
+        env:
+            BACKEND_IMAGE: ghcr.io/${{github.repository_owner}}/practicelab-backend:sha-${{ github.sha }}
+            FRONTEND_IMAGE: ghcr.io/${{github.repository_owner}}/practicelab-frontend:sha-${{ github.sha }}
+
+        outputs:    # Pass the built image references and IDs to the calling workflow
+            backend-image: ${{ steps.record.outputs.backend-image }}
+            frontend-image: ${{ steps.record.outputs.frontend-image }}
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v7
+
+            - name: Build backend image
+              run: docker build -t $BACKEND_IMAGE ./backend
+            
+            - name: Build frontend image
+              run: docker build -t $FRONTEND_IMAGE ./frontend
+
+            - name: Record image references
+              id: record
+              run: |
+                {
+                    echo "backend-image=$BACKEND_IMAGE"
+                    echo "frontend-image=$FRONTEND_IMAGE"
+                } >> "$GITHUB_OUTPUT"
+                {
+                    echo "### Built images"
+                    echo ""
+                    echo "- \`$BACKEND_IMAGE\`"
+                    echo "- \`$FRONTEND_IMAGE\`"
+                } >> "$GITHUB_STEP_SUMMARY"
+
+            - name: Save Images to a single archive
+              run: docker save "$BACKEND-IMAGE" "$FRONTEND_IMAGE" -o images.tar
+
+            - name: Upload Images Archive for later stages # Build once
+              uses: actions/upload-artifact@v3
+              with:
+                name: images
+                path: images.tar
+                retention-days: 1
+                if-no-files-found: error
