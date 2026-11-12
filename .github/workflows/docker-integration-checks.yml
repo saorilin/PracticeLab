@@ -2,13 +2,34 @@ name: Docker Integration Checks
 
 on:
   workflow_call:
+    inputs:
+      backend-image:
+        required: true
+        type: string
+      frontend-image:
+        required: true
+        type: string
+
   workflow_dispatch:
+    inputs:
+      backend-image:
+        required: true
+        type: string
+      frontend-image:
+        required: true
+        type: string
 
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash # bash --noprofile --norc -eo pipefail
+
 env:
       FRONTEND_PORT: "8080"
+      BACKEND_IMAGE: ${{ inputs.backend-image }}
+      FRONTEND_IMAGE: ${{ inputs.frontend-image }}
 
 jobs:
   docker-integration:
@@ -18,9 +39,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+      
+      - name: Download images
+        uses: actions/download-artifact@v8
+        with:
+          name: images
+      
+      - name: Load images
+        run: docker load -i images.tar
 
-      - name: Build and start containers
-        run: docker compose up --build -d --wait --wait-timeout 120
+      - name: Start containers from the built images (no rebuild)
+        run: docker compose up --no-build --pull never -d --wait --wait-timeout 120
 
       - name: Check frontend
         run: curl --fail --show-error --silent "http://localhost:${FRONTEND_PORT}/"
