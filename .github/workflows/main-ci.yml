@@ -13,6 +13,9 @@ concurrency:    # ensure the publish job is not running concurrently
     cancel-in-progress: false
 
 jobs:
+  build:
+    uses: ./.github/workflows/build-images.yml
+
   backend:
     uses: ./.github/workflows/backend-checks.yml
 
@@ -20,12 +23,19 @@ jobs:
     uses: ./.github/workflows/frontend-checks.yml
 
   docker:
+    needs: build
     uses: ./.github/workflows/docker-integration-checks.yml
+    with:
+      backend-image: ${{ needs.build.outputs.backend-image }}
+      frontend-image: ${{ needs.build.outputs.frontend-image }}
 
   publish:
-    needs: [backend, frontend, docker]
+    needs: [build, backend, frontend, docker]
     if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: write
     uses: ./.github/workflows/publish-images.yml
+    with:
+      backend-image: ${{ needs.build.outputs.backend-image }}
+      frontend-image: ${{ needs.build.outputs.frontend-image }}
