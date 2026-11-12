@@ -10,15 +10,6 @@ on:
         required: true
         type: string
 
-  workflow_dispatch:
-    inputs:
-      backend-image:
-        required: true
-        type: string
-      frontend-image:
-        required: true
-        type: string
-
 permissions:
   contents: read
 

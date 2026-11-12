@@ -26,7 +26,7 @@ jobs:
             BACKEND_IMAGE: ghcr.io/${{github.repository_owner}}/practicelab-backend:sha-${{ github.sha }}
             FRONTEND_IMAGE: ghcr.io/${{github.repository_owner}}/practicelab-frontend:sha-${{ github.sha }}
 
-        outputs:    # Pass the built image references and IDs to the calling workflow
+        outputs:    # Pass the built image references to the calling workflow
             backend-image: ${{ steps.record.outputs.backend-image }}
             frontend-image: ${{ steps.record.outputs.frontend-image }}
 
@@ -55,10 +55,10 @@ jobs:
                 } >> "$GITHUB_STEP_SUMMARY"
 
             - name: Save Images to a single archive
-              run: docker save "$BACKEND-IMAGE" "$FRONTEND_IMAGE" -o images.tar
+              run: docker save "$BACKEND_IMAGE" "$FRONTEND_IMAGE" -o images.tar
 
             - name: Upload Images Archive for later stages # Build once
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v7
               with:
                 name: images
                 path: images.tar

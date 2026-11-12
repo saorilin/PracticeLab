@@ -28,6 +28,8 @@ jobs:
             frontend-image: ${{ needs.build.outputs.frontend-image }}
 
     all-required-green:
+        name: All required checks passed
+        if: always()
         needs: [build, backend, frontend, docker]
         runs-on: ubuntu-latest
         steps:
