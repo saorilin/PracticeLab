@@ -12,6 +12,8 @@ concurrency:    # cancels any in-progress runs for the same pull request
     cancel-in-progress: true
 
 jobs:
+    build:
+        uses: ./.github/workflows/build-images.yml
     backend:
         uses: ./.github/workflows/backend-checks.yml
     
@@ -19,4 +21,17 @@ jobs:
         uses: ./.github/workflows/frontend-checks.yml
 
     docker:
+        needs: build
         uses: ./.github/workflows/docker-integration-checks.yml
+        with:
+            backend-image: ${{ needs.build.outputs.backend-image }}
+            frontend-image: ${{ needs.build.outputs.frontend-image }}
+
+    all-required-green:
+        name: All required checks passed
+        if: always()
+        needs: [build, backend, frontend, docker]
+        runs-on: ubuntu-latest
+        steps:
+            - name: All required checks passed
+              run: echo "All required checks passed for this pull request."

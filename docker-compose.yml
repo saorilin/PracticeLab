@@ -1,5 +1,6 @@
 services:
   backend:
+    image: ${BACKEND_IMAGE:-practicelab-backend:local}
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -15,6 +16,7 @@ services:
       - "8000"
 
   frontend:
+    image: ${FRONTEND_IMAGE:-practicelab-frontend:local}
     build:
       context: ./frontend
       dockerfile: Dockerfile
