@@ -33,5 +33,17 @@ jobs:
         needs: [build, backend, frontend, docker]
         runs-on: ubuntu-latest
         steps:
-            - name: All required checks passed
-              run: echo "All required checks passed for this pull request."
+            - name: Verify all required checks passed
+              shell: bash
+              env:
+                  RESULTS: ${{ join(needs.*.result, ' ') }}
+              run: |
+                  echo "Results of needed jobs: $RESULTS"
+                  for r in $RESULTS; do
+                    if [ "$r" != "success" ]; then
+                      echo "::error::At least one required check did not succeed (got: $r)"
+                      exit 1
+                    fi
+                  done
+                  echo "All required checks passed."
+              
