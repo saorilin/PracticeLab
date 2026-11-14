@@ -57,7 +57,10 @@ jobs:
                 retention-days: 14
 
             - name: Upload coverage report
+              if: ${{ !cancelled() && steps.tests.outcome != 'skipped' }}
               uses: actions/upload-artifact@v7
               with:
                   name: backend-coverage-report
                   path: ./backend/htmlcov/
+                  if-no-files-found: warn
+                  retention-days: 14
