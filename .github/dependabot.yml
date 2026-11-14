@@ -24,5 +24,3 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-
-# Testing the new dependabot.yml file to see if it works correctly with the new format
