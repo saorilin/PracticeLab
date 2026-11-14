@@ -14,6 +14,7 @@ PracticeLab is a web application for organizing guitar practice exercises.
 
 ```bash
 docker compose up --build -d --wait
+```
 
 ## CI/CD
 
