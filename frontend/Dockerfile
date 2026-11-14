@@ -1,4 +1,5 @@
 FROM node:24-slim@sha256:01d566e8d94d8c619591d78652babfccd3c6992a3dffa9ed5ab39e11cf6c70e9 AS build
+# Node major version must match frontend-checks.yml (setup-node)
 
 WORKDIR /app
 
