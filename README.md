@@ -30,3 +30,5 @@ Deployment is not automated in this project.
 
 Dependency updates: Dependabot handles npm, Docker base images and GitHub Actions
 (minor/patch/digest only). Python lock files are refreshed manually.
+
+`docs: typo (verification T01)`
