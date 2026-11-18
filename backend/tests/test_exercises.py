@@ -57,7 +57,7 @@ def test_preset_exercise_cannot_be_modified(client: TestClient) -> None:
     update_response = client.put(f"/api/v1/exercises/{preset['id']}", json=custom_payload())
     delete_response = client.delete(f"/api/v1/exercises/{preset['id']}")
 
-    assert update_response.status_code == 403
+    assert update_response.status_code == 999
     assert delete_response.status_code == 403
 
 
