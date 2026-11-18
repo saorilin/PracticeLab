@@ -9,7 +9,7 @@ import { MetronomePage } from "./pages/MetronomePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { ToolsPage } from "./pages/ToolsPage";
 
-export function App() {
+    export function App() {
   return (
     <Routes>
       <Route element={<Layout />}>

@@ -87,3 +87,5 @@ def remove_exercise(exercise_id: str, session: SessionDependency) -> Response:
     exercise = _get_editable_exercise(exercise_id, session)
     delete_exercise(session, exercise)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+unused = 10

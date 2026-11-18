@@ -14,3 +14,5 @@ createRoot(root).render(
     </BrowserRouter>
   </StrictMode>,
 );
+
+const unused = 55;
