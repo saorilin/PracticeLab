@@ -30,14 +30,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
-      
-      - name: Download images
-        uses: actions/download-artifact@v8
-        with:
-          name: images
-      
-      - name: Load images
-        run: docker load -i images.tar
 
       - name: Start containers from the built images (no rebuild)
         run: docker compose up --no-build --pull never -d --wait --wait-timeout 120
