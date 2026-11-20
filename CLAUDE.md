@@ -50,6 +50,22 @@ docker compose up --build -d --wait   # http://localhost:8080
 docker compose down -v
 ```
 
+Integration tests (repo root). The suite in `integration/` is black-box and talks HTTP through
+Nginx only. Run it against an isolated Compose project so the maintainer's own stack, data volume
+and `:local` images are never touched; compare `docker images` IDs of `practicelab-*:local`
+before and after:
+
+```bash
+export COMPOSE_PROJECT_NAME=practicelab-it
+export BACKEND_IMAGE=practicelab-backend:it-test
+export FRONTEND_IMAGE=practicelab-frontend:it-test
+export FRONTEND_PORT=8082
+docker compose up --build -d --wait
+BASE_URL=http://localhost:8082 python -m pytest integration
+docker compose down -v          # only practicelab-it
+docker image rm practicelab-backend:it-test practicelab-frontend:it-test
+```
+
 Before saying a task is done, run every check for the part you changed and report the results.
 
 ## Definition of done for a feature
@@ -63,8 +79,8 @@ Before saying a task is done, run every check for the part you changed and repor
      with a temporary, seeded SQLite database);
    - a change in how the frontend talks to the API → a test in `frontend/src/lib/api.test.ts`
      style that checks the request and the response handling;
-   - a change that affects container start-up, routing or configuration → say so in the PR,
-     because only the Docker integration check in CI covers it.
+   - a change that affects container start-up, Nginx routing, Compose or runtime configuration →
+     add or update a test in `integration/`, which runs in the Docker integration check in CI.
 3. Every test must be able to fail. When you add a test, state what change in the code would
    make it fail.
 4. Frontend coverage thresholds only apply to files listed in `coverage.include` in
