@@ -3,7 +3,9 @@ import json
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Exercise
+from app.models import AppMeta, Exercise
+
+PRESETS_SEEDED_KEY = "presets_seeded"
 
 PRESET_EXERCISES = [
     {
@@ -95,6 +97,14 @@ PRESET_EXERCISES = [
 
 
 def seed_database(session: Session) -> None:
+    """Insert the preset exercises once.
+
+    After the first run the ``presets_seeded`` marker is stored, so presets the user
+    deletes later are not added back on restart.
+    """
+    if session.get(AppMeta, PRESETS_SEEDED_KEY) is not None:
+        return
+
     existing_slugs = set(session.scalars(select(Exercise.slug)))
 
     for item in PRESET_EXERCISES:
@@ -120,4 +130,5 @@ def seed_database(session: Session) -> None:
                 is_custom=False,
             )
         )
+    session.add(AppMeta(key=PRESETS_SEEDED_KEY, value="1"))
     session.commit()
