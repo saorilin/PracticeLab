@@ -1,10 +1,18 @@
-import { useEffect, useState } from "react";
+import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "../components/PageHeader";
 import { StatusMessage } from "../components/StatusMessage";
-import { deleteExercise, getExercise } from "../lib/api";
+import { deleteExercise, getExercise, updateExerciseProgress } from "../lib/api";
 import { categoryLabels } from "../lib/constants";
 import type { Exercise } from "../types/exercise";
+
+function currentBpmLabel(exercise: Exercise): string {
+  if (exercise.current_bpm === null) return "Not set";
+  if (exercise.target_bpm !== null) {
+    return `${exercise.current_bpm} / ${exercise.target_bpm} BPM`;
+  }
+  return `${exercise.current_bpm} BPM`;
+}
 
 export function ExerciseDetailPage() {
   const { exerciseId } = useParams();
@@ -12,6 +20,15 @@ export function ExerciseDetailPage() {
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditingBpm, setIsEditingBpm] = useState(false);
+  const [bpmDraft, setBpmDraft] = useState("");
+  const [isSavingBpm, setIsSavingBpm] = useState(false);
+  const [bpmError, setBpmError] = useState<string | null>(null);
+  const bpmInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditingBpm) bpmInputRef.current?.focus();
+  }, [isEditingBpm]);
 
   useEffect(() => {
     if (!exerciseId) return;
@@ -22,8 +39,12 @@ export function ExerciseDetailPage() {
       );
   }, [exerciseId]);
 
-  async function removeCustomExercise() {
-    if (!exercise || !window.confirm(`Delete “${exercise.name}”? This cannot be undone.`)) return;
+  async function removeExercise() {
+    if (!exercise) return;
+    const message = exercise.is_custom
+      ? `Delete “${exercise.name}”? This cannot be undone.`
+      : `Delete the preset “${exercise.name}”? It will not be restored automatically. This cannot be undone.`;
+    if (!window.confirm(message)) return;
     setIsDeleting(true);
     try {
       await deleteExercise(exercise.id);
@@ -31,6 +52,42 @@ export function ExerciseDetailPage() {
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not delete exercise");
       setIsDeleting(false);
+    }
+  }
+
+  function startBpmEdit() {
+    if (!exercise) return;
+    setBpmDraft(exercise.current_bpm?.toString() ?? "");
+    setBpmError(null);
+    setIsEditingBpm(true);
+  }
+
+  function cancelBpmEdit() {
+    setIsEditingBpm(false);
+    setBpmError(null);
+  }
+
+  async function saveBpm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!exercise) return;
+    const value = bpmDraft.trim() ? Number(bpmDraft) : null;
+    setIsSavingBpm(true);
+    setBpmError(null);
+    try {
+      const updated = await updateExerciseProgress(exercise.id, value);
+      setExercise(updated);
+      setIsEditingBpm(false);
+    } catch (caught) {
+      setBpmError(caught instanceof Error ? caught.message : "Could not save current BPM");
+    } finally {
+      setIsSavingBpm(false);
+    }
+  }
+
+  function handleBpmKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      cancelBpmEdit();
     }
   }
 
@@ -56,40 +113,42 @@ export function ExerciseDetailPage() {
         title={exercise.name}
         description={exercise.summary}
         actions={
-          exercise.is_custom ? (
-            <div className="button-row">
-              <Link className="button button-secondary" to={`/exercises/${exercise.id}/edit`}>
-                Edit
-              </Link>
-              <button
-                className="button button-danger"
-                type="button"
-                onClick={removeCustomExercise}
-                disabled={isDeleting}
-              >
-                {isDeleting ? "Deleting…" : "Delete"}
-              </button>
-            </div>
-          ) : undefined
+          <div className="button-row">
+            <Link className="button button-secondary" to={`/exercises/${exercise.id}/edit`}>
+              Edit
+            </Link>
+            <button
+              className="button button-danger"
+              type="button"
+              onClick={removeExercise}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting…" : "Delete"}
+            </button>
+          </div>
         }
       />
       {error ? <StatusMessage kind="error">{error}</StatusMessage> : null}
       <div className="detail-layout">
         <article className="detail-main">
-          <section>
-            <p className="eyebrow">Training goal</p>
-            <h2>What clean progress looks like</h2>
-            <p>{exercise.goal}</p>
-          </section>
-          <section>
-            <p className="eyebrow">Steps</p>
-            <h2>How to practise it</h2>
-            <ol className="instruction-list">
-              {exercise.steps.map((step) => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
-          </section>
+          {exercise.goal.trim() ? (
+            <section>
+              <p className="eyebrow">Training goal</p>
+              <h2>What clean progress looks like</h2>
+              <p>{exercise.goal}</p>
+            </section>
+          ) : null}
+          {exercise.steps.length > 0 ? (
+            <section>
+              <p className="eyebrow">Steps</p>
+              <h2>How to practise it</h2>
+              <ol className="instruction-list">
+                {exercise.steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+            </section>
+          ) : null}
           {exercise.technique_notes.length > 0 ? (
             <section>
               <p className="eyebrow">Technique notes</p>
@@ -151,11 +210,59 @@ export function ExerciseDetailPage() {
           <p className="eyebrow">Practice target</p>
           <dl>
             <div>
-              <dt>BPM range</dt>
+              <dt>Target BPM</dt>
+              <dd>{exercise.target_bpm ?? "Not set"}</dd>
+            </div>
+            <div className={isEditingBpm ? "current-bpm-row is-editing" : "current-bpm-row"}>
+              <dt>Current BPM</dt>
               <dd>
-                {exercise.min_bpm && exercise.max_bpm
-                  ? `${exercise.min_bpm}–${exercise.max_bpm}`
-                  : "Use a clean tempo"}
+                {isEditingBpm ? (
+                  <form className="current-bpm-form" onSubmit={saveBpm}>
+                    <label className="field">
+                      <span>New current BPM</span>
+                      <input
+                        ref={bpmInputRef}
+                        type="number"
+                        min="20"
+                        max="400"
+                        value={bpmDraft}
+                        onChange={(event) => setBpmDraft(event.target.value)}
+                        onKeyDown={handleBpmKeyDown}
+                      />
+                      <small>Leave empty to clear.</small>
+                    </label>
+                    {bpmError ? <StatusMessage kind="error">{bpmError}</StatusMessage> : null}
+                    <div className="button-row">
+                      <button
+                        className="button button-primary"
+                        type="submit"
+                        disabled={isSavingBpm}
+                      >
+                        {isSavingBpm ? "Saving…" : "Save"}
+                      </button>
+                      <button
+                        className="button button-quiet"
+                        type="button"
+                        onClick={cancelBpmEdit}
+                        disabled={isSavingBpm}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <span data-testid="current-bpm">{currentBpmLabel(exercise)}</span>
+                    <button
+                      className="bpm-edit-button"
+                      type="button"
+                      onClick={startBpmEdit}
+                      aria-label="Change current BPM"
+                    >
+                      Change
+                    </button>
+                  </>
+                )}
               </dd>
             </div>
             <div>
