@@ -84,6 +84,13 @@ export function updateExercise(id: string, payload: ExercisePayload): Promise<Ex
   });
 }
 
+export function updateExerciseProgress(id: string, currentBpm: number | null): Promise<Exercise> {
+  return request<Exercise>(`/exercises/${id}/progress`, {
+    method: "PUT",
+    body: JSON.stringify({ current_bpm: currentBpm }),
+  });
+}
+
 export function deleteExercise(id: string): Promise<void> {
   return request<void>(`/exercises/${id}`, { method: "DELETE" });
 }
