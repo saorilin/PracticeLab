@@ -3,9 +3,9 @@ import re
 from uuid import uuid4
 
 from sqlalchemy import func, or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
-from app.models import Exercise
+from app.models import Exercise, ExerciseProgress
 from app.schemas import ExerciseCreate, ExerciseRead, ExerciseUpdate
 
 
@@ -32,8 +32,7 @@ def to_schema(exercise: Exercise) -> ExerciseRead:
         steps=_json_list(exercise.steps_json),
         technique_notes=_json_list(exercise.technique_notes_json),
         common_mistakes=_json_list(exercise.common_mistakes_json),
-        min_bpm=exercise.min_bpm,
-        max_bpm=exercise.max_bpm,
+        target_bpm=exercise.max_bpm,
         target_duration_seconds=exercise.target_duration_seconds,
         target_repetitions=exercise.target_repetitions,
         source=exercise.source,
@@ -41,24 +40,35 @@ def to_schema(exercise: Exercise) -> ExerciseRead:
         image_url=exercise.image_url,
         tab_url=exercise.tab_url,
         is_custom=exercise.is_custom,
+        current_bpm=exercise.progress.current_bpm if exercise.progress else None,
         created_at=exercise.created_at,
         updated_at=exercise.updated_at,
     )
 
 
-def _apply_payload(exercise: Exercise, payload: ExerciseCreate | ExerciseUpdate) -> None:
+def _apply_payload(
+    exercise: Exercise, payload: ExerciseCreate | ExerciseUpdate, *, keep_unset_legacy: bool
+) -> None:
+    """Copy the payload onto the model.
+
+    ``goal`` and ``steps`` are no longer in the form. When ``keep_unset_legacy`` is true and
+    the request did not send them, the stored values are kept instead of being cleared.
+    ``target_bpm`` is stored in the existing ``max_bpm`` column; ``min_bpm`` is left alone.
+    """
     data = payload.model_dump(mode="json")
+    sent = payload.model_fields_set
     exercise.name = data["name"]
     exercise.primary_category = data["primary_category"]
     exercise.difficulty = data["difficulty"]
     exercise.tags_json = json.dumps(data["tags"])
     exercise.summary = data["summary"]
-    exercise.goal = data["goal"]
-    exercise.steps_json = json.dumps(data["steps"])
+    if not keep_unset_legacy or "goal" in sent:
+        exercise.goal = data["goal"]
+    if not keep_unset_legacy or "steps" in sent:
+        exercise.steps_json = json.dumps(data["steps"])
     exercise.technique_notes_json = json.dumps(data["technique_notes"])
     exercise.common_mistakes_json = json.dumps(data["common_mistakes"])
-    exercise.min_bpm = data["min_bpm"]
-    exercise.max_bpm = data["max_bpm"]
+    exercise.max_bpm = data["target_bpm"]
     exercise.target_duration_seconds = data["target_duration_seconds"]
     exercise.target_repetitions = data["target_repetitions"]
     exercise.source = data["source"]
@@ -74,7 +84,7 @@ def list_exercises(
     difficulty: str | None = None,
     query: str | None = None,
 ) -> tuple[list[ExerciseRead], int]:
-    statement = select(Exercise)
+    statement = select(Exercise).options(selectinload(Exercise.progress))
     if category:
         statement = statement.where(Exercise.primary_category == category)
     if difficulty:
@@ -99,7 +109,7 @@ def get_exercise(session: Session, exercise_id: str) -> Exercise | None:
 
 def create_exercise(session: Session, payload: ExerciseCreate) -> ExerciseRead:
     exercise = Exercise(slug=make_slug(payload.name), is_custom=True)
-    _apply_payload(exercise, payload)
+    _apply_payload(exercise, payload, keep_unset_legacy=False)
     session.add(exercise)
     session.commit()
     session.refresh(exercise)
@@ -107,7 +117,18 @@ def create_exercise(session: Session, payload: ExerciseCreate) -> ExerciseRead:
 
 
 def update_exercise(session: Session, exercise: Exercise, payload: ExerciseUpdate) -> ExerciseRead:
-    _apply_payload(exercise, payload)
+    _apply_payload(exercise, payload, keep_unset_legacy=True)
+    session.add(exercise)
+    session.commit()
+    session.refresh(exercise)
+    return to_schema(exercise)
+
+
+def set_current_bpm(session: Session, exercise: Exercise, current_bpm: int | None) -> ExerciseRead:
+    if exercise.progress is None:
+        exercise.progress = ExerciseProgress(current_bpm=current_bpm)
+    else:
+        exercise.progress.current_bpm = current_bpm
     session.add(exercise)
     session.commit()
     session.refresh(exercise)

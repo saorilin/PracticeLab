@@ -12,8 +12,7 @@ def custom_payload() -> dict[str, object]:
         "steps": ["Choose two chords.", "Change on every four beats."],
         "technique_notes": ["Release pressure without leaving the strings."],
         "common_mistakes": ["Rushing before the chord is ready."],
-        "min_bpm": 50,
-        "max_bpm": 90,
+        "target_bpm": 90,
         "target_duration_seconds": 180,
         "target_repetitions": 12,
         "source": None,
@@ -51,21 +50,28 @@ def test_custom_exercise_crud(client: TestClient) -> None:
     assert client.get(f"/api/v1/exercises/{created['id']}").status_code == 404
 
 
-def test_preset_exercise_cannot_be_modified(client: TestClient) -> None:
+def test_preset_exercise_can_be_edited_and_deleted(client: TestClient) -> None:
     preset = client.get("/api/v1/exercises").json()["items"][0]
+    assert preset["is_custom"] is False
 
-    update_response = client.put(f"/api/v1/exercises/{preset['id']}", json=custom_payload())
-    delete_response = client.delete(f"/api/v1/exercises/{preset['id']}")
-
-    assert update_response.status_code == 403
-    assert delete_response.status_code == 403
-
-
-def test_rejects_invalid_bpm_range(client: TestClient) -> None:
     payload = custom_payload()
-    payload["min_bpm"] = 140
-    payload["max_bpm"] = 80
+    payload["name"] = "Edited preset"
+    update_response = client.put(f"/api/v1/exercises/{preset['id']}", json=payload)
+    assert update_response.status_code == 200
+    assert update_response.json()["name"] == "Edited preset"
+    assert update_response.json()["is_custom"] is False
 
-    response = client.post("/api/v1/exercises", json=payload)
+    delete_response = client.delete(f"/api/v1/exercises/{preset['id']}")
+    assert delete_response.status_code == 204
+    assert client.get(f"/api/v1/exercises/{preset['id']}").status_code == 404
+    assert client.get("/api/v1/exercises").json()["total"] == 4
 
-    assert response.status_code == 422
+
+def test_rejects_target_bpm_out_of_range(client: TestClient) -> None:
+    for value in (19, 401):
+        payload = custom_payload()
+        payload["target_bpm"] = value
+
+        response = client.post("/api/v1/exercises", json=payload)
+
+        assert response.status_code == 422, value
