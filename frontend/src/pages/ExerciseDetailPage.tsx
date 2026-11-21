@@ -1,6 +1,7 @@
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "../components/PageHeader";
+import { PracticeLogSection } from "../components/PracticeLogSection";
 import { StatusMessage } from "../components/StatusMessage";
 import { deleteExercise, getExercise, updateExerciseProgress } from "../lib/api";
 import { categoryLabels } from "../lib/constants";
@@ -205,6 +206,7 @@ export function ExerciseDetailPage() {
               </div>
             </section>
           ) : null}
+          <PracticeLogSection exerciseId={exercise.id} currentBpm={exercise.current_bpm} />
         </article>
         <aside className="practice-card">
           <p className="eyebrow">Practice target</p>

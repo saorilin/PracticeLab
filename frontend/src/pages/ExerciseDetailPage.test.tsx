@@ -2,7 +2,13 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, deleteExercise, getExercise, updateExerciseProgress } from "../lib/api";
+import {
+  ApiError,
+  deleteExercise,
+  getExercise,
+  getPracticeSessions,
+  updateExerciseProgress,
+} from "../lib/api";
 import type { Exercise } from "../types/exercise";
 import { ExerciseDetailPage } from "./ExerciseDetailPage";
 
@@ -13,6 +19,9 @@ vi.mock("../lib/api", async (importOriginal) => {
     deleteExercise: vi.fn(),
     getExercise: vi.fn(),
     updateExerciseProgress: vi.fn(),
+    // Used by PracticeLogSection, which the detail page renders (F1).
+    getPracticeSessions: vi.fn(),
+    createPracticeSession: vi.fn(),
   };
 });
 
@@ -46,6 +55,8 @@ function makeExercise(overrides: Partial<Exercise> = {}): Exercise {
 
 async function renderDetail(exercise: Exercise) {
   vi.mocked(getExercise).mockResolvedValue(exercise);
+  // Reset by vi.resetAllMocks() after each test, so set the default here.
+  vi.mocked(getPracticeSessions).mockResolvedValue({ items: [], total: 0 });
   render(
     <MemoryRouter initialEntries={[`/exercises/${exercise.id}`]}>
       <Routes>
@@ -196,5 +207,14 @@ describe("ExerciseDetailPage", () => {
     expect(screen.queryByLabelText(/new current bpm/i)).not.toBeInTheDocument();
     expect(screen.getByTestId("current-bpm")).toHaveTextContent("80 BPM");
     expect(updateExerciseProgress).not.toHaveBeenCalled();
+  });
+
+  it("renders the practice log for this exercise", async () => {
+    await renderDetail(makeExercise({ current_bpm: 85 }));
+
+    expect(screen.getByRole("heading", { name: "Record what you played" })).toBeInTheDocument();
+    expect(getPracticeSessions).toHaveBeenCalledWith("preset-1");
+    expect(await screen.findByText("No sessions logged yet.")).toBeInTheDocument();
+    expect(screen.getByLabelText("BPM")).toHaveAttribute("placeholder", "85");
   });
 });

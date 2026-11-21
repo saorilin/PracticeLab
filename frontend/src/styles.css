@@ -1439,3 +1439,45 @@ h2 {
     order: -1;
   }
 }
+
+/* Exercise detail: practice log */
+.practice-log-form {
+  display: grid;
+  gap: 18px;
+  justify-items: start;
+}
+
+.practice-log-form .form-grid {
+  width: 100%;
+}
+
+.practice-log-empty {
+  color: var(--ink-soft);
+}
+
+.practice-log-list {
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.practice-log-list li {
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+
+.practice-log-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-weight: 700;
+}
+
+.practice-log-meta time {
+  color: var(--ink-soft);
+  font-weight: 400;
+}
+
+.detail-main .practice-log-notes {
+  margin: 6px 0 0;
+}
