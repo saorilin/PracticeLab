@@ -1,4 +1,9 @@
 import type { Exercise, ExerciseListResponse, ExercisePayload } from "../types/exercise";
+import type {
+  PracticeSession,
+  PracticeSessionListResponse,
+  PracticeSessionPayload,
+} from "../types/practiceSession";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
 
@@ -93,4 +98,18 @@ export function updateExerciseProgress(id: string, currentBpm: number | null): P
 
 export function deleteExercise(id: string): Promise<void> {
   return request<void>(`/exercises/${id}`, { method: "DELETE" });
+}
+
+export function getPracticeSessions(exerciseId: string): Promise<PracticeSessionListResponse> {
+  return request<PracticeSessionListResponse>(`/exercises/${exerciseId}/sessions`);
+}
+
+export function createPracticeSession(
+  exerciseId: string,
+  payload: PracticeSessionPayload,
+): Promise<PracticeSession> {
+  return request<PracticeSession>(`/exercises/${exerciseId}/sessions`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
