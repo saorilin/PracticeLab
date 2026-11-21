@@ -1,13 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createExercise,
+  createPracticeSession,
   deleteExercise,
   getExercise,
   getExercises,
+  getPracticeSessions,
   updateExercise,
   updateExerciseProgress,
 } from "./api";
 import type { Exercise, ExercisePayload } from "../types/exercise";
+import type { PracticeSession } from "../types/practiceSession";
 
 const payload: ExercisePayload = {
   name: "Muted transitions",
@@ -146,5 +149,56 @@ describe("exercise API client", () => {
     );
 
     await expect(createExercise(payload)).rejects.toThrow("Name is required; Invalid BPM");
+  });
+});
+
+describe("practice session API client", () => {
+  const practiceSession: PracticeSession = {
+    id: "session-1",
+    exercise_id: "exercise-1",
+    duration_minutes: 15,
+    bpm: 90,
+    notes: "Clean at 90.",
+    practiced_at: "2026-11-21T08:30:00+00:00",
+  };
+
+  it("reads the practice sessions of one exercise", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ items: [practiceSession], total: 1 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(getPracticeSessions("exercise-1")).resolves.toEqual({
+      items: [practiceSession],
+      total: 1,
+    });
+
+    expect(fetchMock.mock.calls[0]?.[0]).toMatch(/\/api\/v1\/exercises\/exercise-1\/sessions$/);
+    expect(fetchMock.mock.calls[0]?.[1]?.method ?? "GET").toBe("GET");
+  });
+
+  it("posts a new practice session and returns the created record", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(practiceSession, 201));
+    vi.stubGlobal("fetch", fetchMock);
+    const body = { duration_minutes: 15, bpm: 90, notes: "Clean at 90." };
+
+    await expect(createPracticeSession("exercise-1", body)).resolves.toEqual(practiceSession);
+
+    expect(fetchMock.mock.calls[0]?.[0]).toMatch(/\/api\/v1\/exercises\/exercise-1\/sessions$/);
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  });
+
+  it("surfaces a 404 for a missing exercise", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(jsonResponse({ detail: "Exercise not found" }, 404)),
+    );
+
+    await expect(getPracticeSessions("missing")).rejects.toEqual(
+      expect.objectContaining({ message: "Exercise not found", status: 404 }),
+    );
   });
 });

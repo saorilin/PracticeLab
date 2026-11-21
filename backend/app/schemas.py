@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, field_validator
 
 from app.models import Difficulty, ExerciseCategory
 
@@ -50,6 +50,36 @@ class ExerciseList(BaseModel):
 
 class ExerciseProgressUpdate(BaseModel):
     current_bpm: int | None = Field(ge=20, le=400)
+
+
+class PracticeSessionCreate(BaseModel):
+    duration_minutes: int = Field(ge=1, le=600)
+    bpm: int | None = Field(default=None, ge=20, le=400)
+    notes: str | None = Field(default=None, max_length=1000)
+
+
+class PracticeSessionRead(BaseModel):
+    id: str
+    exercise_id: str
+    duration_minutes: int
+    bpm: int | None
+    notes: str | None
+    practiced_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_validator("practiced_at")
+    @classmethod
+    def assume_utc(cls, value: datetime) -> datetime:
+        # SQLite drops the timezone of DateTime(timezone=True) columns. The value is always
+        # written as UTC (utc_now), so mark it as UTC; otherwise the JSON has no offset and
+        # browsers would read it as local time.
+        return value if value.tzinfo is not None else value.replace(tzinfo=UTC)
+
+
+class PracticeSessionList(BaseModel):
+    items: list[PracticeSessionRead]
+    total: int
 
 
 class HealthResponse(BaseModel):
