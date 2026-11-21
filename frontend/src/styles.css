@@ -1388,3 +1388,54 @@ h2 {
     transition-duration: 0.01ms;
   }
 }
+
+/* Exercise detail: current BPM quick edit */
+.practice-card dl .current-bpm-row dd {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.bpm-edit-button {
+  padding: 0;
+  border: 0;
+  color: var(--brass-deep);
+  background: transparent;
+  font: inherit;
+  font-size: 0.83rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.practice-card dl .current-bpm-row.is-editing {
+  flex-direction: column;
+  gap: 12px;
+}
+
+.practice-card dl .current-bpm-row.is-editing dd {
+  display: block;
+  text-align: left;
+  font-weight: 400;
+}
+
+.current-bpm-form {
+  display: grid;
+  gap: 14px;
+}
+
+.practice-card dl .current-bpm-form div {
+  padding: 0;
+  border-bottom: 0;
+  justify-content: flex-start;
+}
+
+/* Exercise detail: show the practice target above the content on narrow screens */
+@media (max-width: 900px) {
+  .detail-layout .practice-card {
+    order: -1;
+  }
+}

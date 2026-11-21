@@ -2,8 +2,8 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -53,3 +53,26 @@ class Exercise(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
     )
+    progress: Mapped["ExerciseProgress | None"] = relationship(
+        back_populates="exercise", cascade="all, delete-orphan", uselist=False
+    )
+
+
+class ExerciseProgress(Base):
+    __tablename__ = "exercise_progress"
+
+    exercise_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("exercises.id"), primary_key=True
+    )
+    current_bpm: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now, onupdate=utc_now
+    )
+    exercise: Mapped[Exercise] = relationship(back_populates="progress")
+
+
+class AppMeta(Base):
+    __tablename__ = "app_meta"
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[str] = mapped_column(String(255))

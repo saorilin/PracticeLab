@@ -17,12 +17,9 @@ export interface ExercisePayload {
   difficulty: Difficulty;
   tags: string[];
   summary: string;
-  goal: string;
-  steps: string[];
   technique_notes: string[];
   common_mistakes: string[];
-  min_bpm: number | null;
-  max_bpm: number | null;
+  target_bpm: number | null;
   target_duration_seconds: number | null;
   target_repetitions: number | null;
   source: string | null;
@@ -34,6 +31,9 @@ export interface ExercisePayload {
 export interface Exercise extends ExercisePayload {
   id: string;
   slug: string;
+  goal: string;
+  steps: string[];
+  current_bpm: number | null;
   is_custom: boolean;
   created_at: string;
   updated_at: string;

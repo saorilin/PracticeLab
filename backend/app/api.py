@@ -10,10 +10,18 @@ from app.repository import (
     delete_exercise,
     get_exercise,
     list_exercises,
+    set_current_bpm,
     to_schema,
     update_exercise,
 )
-from app.schemas import ExerciseCreate, ExerciseList, ExerciseRead, ExerciseUpdate, HealthResponse
+from app.schemas import (
+    ExerciseCreate,
+    ExerciseList,
+    ExerciseProgressUpdate,
+    ExerciseRead,
+    ExerciseUpdate,
+    HealthResponse,
+)
 
 router = APIRouter()
 SessionDependency = Annotated[Session, Depends(get_session)]
@@ -58,15 +66,10 @@ def add_exercise(payload: ExerciseCreate, session: SessionDependency) -> Exercis
     return create_exercise(session, payload)
 
 
-def _get_editable_exercise(exercise_id: str, session: Session) -> Exercise:
+def _get_exercise_or_404(exercise_id: str, session: Session) -> Exercise:
     exercise = get_exercise(session, exercise_id)
     if exercise is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Exercise not found")
-    if not exercise.is_custom:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Preset exercises cannot be changed",
-        )
     return exercise
 
 
@@ -74,8 +77,20 @@ def _get_editable_exercise(exercise_id: str, session: Session) -> Exercise:
 def replace_exercise(
     exercise_id: str, payload: ExerciseUpdate, session: SessionDependency
 ) -> ExerciseRead:
-    exercise = _get_editable_exercise(exercise_id, session)
+    exercise = _get_exercise_or_404(exercise_id, session)
     return update_exercise(session, exercise, payload)
+
+
+@router.put(
+    "/exercises/{exercise_id}/progress",
+    response_model=ExerciseRead,
+    tags=["exercises"],
+)
+def update_progress(
+    exercise_id: str, payload: ExerciseProgressUpdate, session: SessionDependency
+) -> ExerciseRead:
+    exercise = _get_exercise_or_404(exercise_id, session)
+    return set_current_bpm(session, exercise, payload.current_bpm)
 
 
 @router.delete(
@@ -84,6 +99,6 @@ def replace_exercise(
     tags=["exercises"],
 )
 def remove_exercise(exercise_id: str, session: SessionDependency) -> Response:
-    exercise = _get_editable_exercise(exercise_id, session)
+    exercise = _get_exercise_or_404(exercise_id, session)
     delete_exercise(session, exercise)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

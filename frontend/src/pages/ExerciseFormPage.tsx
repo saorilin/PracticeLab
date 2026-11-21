@@ -12,12 +12,9 @@ interface FormState {
   difficulty: ExercisePayload["difficulty"];
   tags: string;
   summary: string;
-  goal: string;
-  steps: string;
   technique_notes: string;
   common_mistakes: string;
-  min_bpm: string;
-  max_bpm: string;
+  target_bpm: string;
   target_duration_minutes: string;
   target_repetitions: string;
   source: string;
@@ -32,12 +29,9 @@ const emptyForm: FormState = {
   difficulty: "beginner",
   tags: "",
   summary: "",
-  goal: "",
-  steps: "",
   technique_notes: "",
   common_mistakes: "",
-  min_bpm: "",
-  max_bpm: "",
+  target_bpm: "",
   target_duration_minutes: "",
   target_repetitions: "",
   source: "",
@@ -67,12 +61,9 @@ function toPayload(form: FormState): ExercisePayload {
       .map((tag) => tag.trim())
       .filter(Boolean),
     summary: form.summary.trim(),
-    goal: form.goal.trim(),
-    steps: listFromLines(form.steps),
     technique_notes: listFromLines(form.technique_notes),
     common_mistakes: listFromLines(form.common_mistakes),
-    min_bpm: nullableNumber(form.min_bpm),
-    max_bpm: nullableNumber(form.max_bpm),
+    target_bpm: nullableNumber(form.target_bpm),
     target_duration_seconds: form.target_duration_minutes
       ? Number(form.target_duration_minutes) * 60
       : null,
@@ -91,12 +82,9 @@ function fromExercise(exercise: Exercise): FormState {
     difficulty: exercise.difficulty,
     tags: exercise.tags.join(", "),
     summary: exercise.summary,
-    goal: exercise.goal,
-    steps: exercise.steps.join("\n"),
     technique_notes: exercise.technique_notes.join("\n"),
     common_mistakes: exercise.common_mistakes.join("\n"),
-    min_bpm: exercise.min_bpm?.toString() ?? "",
-    max_bpm: exercise.max_bpm?.toString() ?? "",
+    target_bpm: exercise.target_bpm?.toString() ?? "",
     target_duration_minutes: exercise.target_duration_seconds
       ? (exercise.target_duration_seconds / 60).toString()
       : "",
@@ -120,10 +108,7 @@ export function ExerciseFormPage() {
   useEffect(() => {
     if (!exerciseId) return;
     getExercise(exerciseId)
-      .then((exercise) => {
-        if (!exercise.is_custom) throw new Error("Preset exercises cannot be edited");
-        setForm(fromExercise(exercise));
-      })
+      .then((exercise) => setForm(fromExercise(exercise)))
       .catch((caught: unknown) =>
         setError(caught instanceof Error ? caught.message : "Could not load exercise"),
       )
@@ -158,7 +143,7 @@ export function ExerciseFormPage() {
         ← Cancel and return
       </Link>
       <PageHeader
-        eyebrow="Custom exercise"
+        eyebrow={isEditing ? "Exercise" : "Custom exercise"}
         title={isEditing ? "Edit the exercise" : "Add an exercise"}
         description="Write instructions that will still make sense when you return several weeks later."
       />
@@ -239,26 +224,6 @@ export function ExerciseFormPage() {
             <h2>Instructions</h2>
             <div className="form-grid">
               <label className="field full-span">
-                <span>Training goal</span>
-                <textarea
-                  required
-                  minLength={5}
-                  rows={3}
-                  value={form.goal}
-                  onChange={(event) => update("goal", event.target.value)}
-                />
-              </label>
-              <label className="field full-span">
-                <span>Steps</span>
-                <textarea
-                  required
-                  rows={5}
-                  value={form.steps}
-                  onChange={(event) => update("steps", event.target.value)}
-                />
-                <small>Write one step per line.</small>
-              </label>
-              <label className="field full-span">
                 <span>Technique notes</span>
                 <textarea
                   rows={4}
@@ -286,23 +251,13 @@ export function ExerciseFormPage() {
             <h2>Practice target</h2>
             <div className="form-grid compact-grid">
               <label className="field">
-                <span>Minimum BPM</span>
+                <span>Target BPM</span>
                 <input
                   type="number"
                   min="20"
                   max="400"
-                  value={form.min_bpm}
-                  onChange={(event) => update("min_bpm", event.target.value)}
-                />
-              </label>
-              <label className="field">
-                <span>Maximum BPM</span>
-                <input
-                  type="number"
-                  min="20"
-                  max="400"
-                  value={form.max_bpm}
-                  onChange={(event) => update("max_bpm", event.target.value)}
+                  value={form.target_bpm}
+                  onChange={(event) => update("target_bpm", event.target.value)}
                 />
               </label>
               <label className="field">

@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createExercise, deleteExercise, getExercise, getExercises, updateExercise } from "./api";
+import {
+  createExercise,
+  deleteExercise,
+  getExercise,
+  getExercises,
+  updateExercise,
+  updateExerciseProgress,
+} from "./api";
 import type { Exercise, ExercisePayload } from "../types/exercise";
 
 const payload: ExercisePayload = {
@@ -8,12 +15,9 @@ const payload: ExercisePayload = {
   difficulty: "beginner",
   tags: ["muting"],
   summary: "Change positions without string noise.",
-  goal: "Keep unused strings silent.",
-  steps: ["Play slowly."],
   technique_notes: [],
   common_mistakes: [],
-  min_bpm: 50,
-  max_bpm: 90,
+  target_bpm: 90,
   target_duration_seconds: 180,
   target_repetitions: null,
   source: null,
@@ -26,6 +30,9 @@ const exercise: Exercise = {
   ...payload,
   id: "exercise-1",
   slug: "muted-transitions",
+  goal: "Keep unused strings silent.",
+  steps: ["Play slowly."],
+  current_bpm: null,
   is_custom: true,
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
@@ -76,6 +83,28 @@ describe("exercise API client", () => {
       body: JSON.stringify(payload),
     });
     expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({ method: "PUT" });
+  });
+
+  it("sends the current BPM to the progress endpoint and returns the exercise", async () => {
+    const updated = { ...exercise, current_bpm: 85 };
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(updated))
+      .mockResolvedValueOnce(jsonResponse(exercise));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(updateExerciseProgress("exercise-1", 85)).resolves.toEqual(updated);
+    await updateExerciseProgress("exercise-1", null);
+
+    expect(fetchMock.mock.calls[0]?.[0]).toMatch(/\/api\/v1\/exercises\/exercise-1\/progress$/);
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({
+      method: "PUT",
+      body: JSON.stringify({ current_bpm: 85 }),
+    });
+    expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({
+      method: "PUT",
+      body: JSON.stringify({ current_bpm: null }),
+    });
   });
 
   it("handles a successful empty delete response", async () => {
