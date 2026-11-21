@@ -5,8 +5,14 @@ from uuid import uuid4
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import Exercise, ExerciseProgress
-from app.schemas import ExerciseCreate, ExerciseRead, ExerciseUpdate
+from app.models import Exercise, ExerciseProgress, PracticeSession
+from app.schemas import (
+    ExerciseCreate,
+    ExerciseRead,
+    ExerciseUpdate,
+    PracticeSessionCreate,
+    PracticeSessionRead,
+)
 
 
 def make_slug(name: str) -> str:
@@ -138,6 +144,30 @@ def set_current_bpm(session: Session, exercise: Exercise, current_bpm: int | Non
 def delete_exercise(session: Session, exercise: Exercise) -> None:
     session.delete(exercise)
     session.commit()
+
+
+def create_practice_session(
+    session: Session, exercise: Exercise, payload: PracticeSessionCreate
+) -> PracticeSessionRead:
+    practice_session = PracticeSession(
+        exercise_id=exercise.id,
+        duration_minutes=payload.duration_minutes,
+        bpm=payload.bpm,
+        notes=payload.notes,
+    )
+    session.add(practice_session)
+    session.commit()
+    session.refresh(practice_session)
+    return PracticeSessionRead.model_validate(practice_session)
+
+
+def list_practice_sessions(session: Session, exercise: Exercise) -> list[PracticeSessionRead]:
+    statement = (
+        select(PracticeSession)
+        .where(PracticeSession.exercise_id == exercise.id)
+        .order_by(PracticeSession.practiced_at.desc())
+    )
+    return [PracticeSessionRead.model_validate(row) for row in session.scalars(statement)]
 
 
 def exercise_count(session: Session) -> int:

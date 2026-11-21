@@ -7,9 +7,11 @@ from app.database import get_session
 from app.models import Difficulty, Exercise, ExerciseCategory
 from app.repository import (
     create_exercise,
+    create_practice_session,
     delete_exercise,
     get_exercise,
     list_exercises,
+    list_practice_sessions,
     set_current_bpm,
     to_schema,
     update_exercise,
@@ -21,6 +23,9 @@ from app.schemas import (
     ExerciseRead,
     ExerciseUpdate,
     HealthResponse,
+    PracticeSessionCreate,
+    PracticeSessionList,
+    PracticeSessionRead,
 )
 
 router = APIRouter()
@@ -91,6 +96,32 @@ def update_progress(
 ) -> ExerciseRead:
     exercise = _get_exercise_or_404(exercise_id, session)
     return set_current_bpm(session, exercise, payload.current_bpm)
+
+
+# Logging practice is not editing the exercise: any existing exercise (preset or custom)
+# accepts sessions, so only existence is checked.
+@router.post(
+    "/exercises/{exercise_id}/sessions",
+    response_model=PracticeSessionRead,
+    status_code=status.HTTP_201_CREATED,
+    tags=["practice sessions"],
+)
+def log_practice_session(
+    exercise_id: str, payload: PracticeSessionCreate, session: SessionDependency
+) -> PracticeSessionRead:
+    exercise = _get_exercise_or_404(exercise_id, session)
+    return create_practice_session(session, exercise, payload)
+
+
+@router.get(
+    "/exercises/{exercise_id}/sessions",
+    response_model=PracticeSessionList,
+    tags=["practice sessions"],
+)
+def read_practice_sessions(exercise_id: str, session: SessionDependency) -> PracticeSessionList:
+    exercise = _get_exercise_or_404(exercise_id, session)
+    items = list_practice_sessions(session, exercise)
+    return PracticeSessionList(items=items, total=len(items))
 
 
 @router.delete(

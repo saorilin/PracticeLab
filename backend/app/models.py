@@ -56,6 +56,11 @@ class Exercise(Base):
     progress: Mapped["ExerciseProgress | None"] = relationship(
         back_populates="exercise", cascade="all, delete-orphan", uselist=False
     )
+    # Deleting an exercise deletes its practice log. Handled by the ORM because SQLite does
+    # not enforce foreign keys by default, so ON DELETE CASCADE cannot be relied on.
+    practice_sessions: Mapped[list["PracticeSession"]] = relationship(
+        back_populates="exercise", cascade="all, delete-orphan"
+    )
 
 
 class ExerciseProgress(Base):
@@ -69,6 +74,20 @@ class ExerciseProgress(Base):
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
     )
     exercise: Mapped[Exercise] = relationship(back_populates="progress")
+
+
+class PracticeSession(Base):
+    __tablename__ = "practice_sessions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    exercise_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("exercises.id"), index=True, nullable=False
+    )
+    duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+    bpm: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    practiced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    exercise: Mapped[Exercise] = relationship(back_populates="practice_sessions")
 
 
 class AppMeta(Base):
