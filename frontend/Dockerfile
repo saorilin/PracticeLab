@@ -10,7 +10,7 @@ COPY . .
 RUN npm run build
 
 
-FROM nginx:1.30.6-alpine-slim@sha256:e2355aa95529a7999dad94ddcb45a8768abf6fb0b204c93b1a3ffce477d7b893
+FROM nginx:1.31.0-alpine-slim@sha256:241b0d0fe06250e026e7a35a008d022c9a1d3bec19442d65cc33b84d0b5dd64d
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
